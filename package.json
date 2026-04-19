@@ -4,13 +4,14 @@
   "author": "xTsuSaKu <me@xtsusaku.net> (https://xtsusaku.net)",
   "module": "index.ts",
   "type": "module",
-  "license":"",
+  "license": "",
   "repository": {
     "type": "git",
     "url": "https://github.com/xtsusaku/S3Server.git"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "tsdown": "^0.21.9"
   },
   "peerDependencies": {
     "typescript": "^5",
