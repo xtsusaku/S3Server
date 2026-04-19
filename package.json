@@ -1,0 +1,20 @@
+{
+  "name": "s3server",
+  "version": "1.0.0",
+  "author": "xTsuSaKu <me@xtsusaku.net> (https://xtsusaku.net)",
+  "module": "index.ts",
+  "type": "module",
+  "license":"",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xtsusaku/S3Server.git"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5",
+    "elysia": "^1.4.28"
+  }
+}
