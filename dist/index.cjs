@@ -1,8 +1,35 @@
-import { Readable } from "node:stream";
-import { createReadStream, createWriteStream, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { ReadableStream } from "node:stream/web";
-import crypto$1, { createHash, createHmac, timingSafeEqual } from "node:crypto";
-import { Elysia } from "elysia";
+Object.defineProperties(exports, {
+	__esModule: { value: true },
+	[Symbol.toStringTag]: { value: "Module" }
+});
+//#region \0rolldown/runtime.js
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __copyProps = (to, from, except, desc) => {
+	if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
+		key = keys[i];
+		if (!__hasOwnProp.call(to, key) && key !== except) __defProp(to, key, {
+			get: ((k) => from[k]).bind(null, key),
+			enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+		});
+	}
+	return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
+	value: mod,
+	enumerable: true
+}) : target, mod));
+//#endregion
+let node_stream = require("node:stream");
+let node_fs = require("node:fs");
+let node_stream_web = require("node:stream/web");
+let node_crypto = require("node:crypto");
+node_crypto = __toESM(node_crypto, 1);
+let elysia = require("elysia");
 //#region src/api/abs/MetadataProvider.ts
 var MetadataProvider = class {
 	constructor(bucketName = void 0, options) {
@@ -112,7 +139,7 @@ var DefaultMetadataProvider = class extends MetadataProvider {
 	constructor(bucketName = void 0, options = {}) {
 		super(bucketName, options);
 		this._fileLocation = options.fileLocation || this._fileLocation;
-		this._metadata = JSON.parse(existsSync(this._fileLocation) ? readFileSync(this._fileLocation, "utf-8") : "{}") || {};
+		this._metadata = JSON.parse((0, node_fs.existsSync)(this._fileLocation) ? (0, node_fs.readFileSync)(this._fileLocation, "utf-8") : "{}") || {};
 		this.saveToFile();
 	}
 	async isBucketExist(bucketName, owner) {
@@ -281,7 +308,7 @@ var DefaultMetadataProvider = class extends MetadataProvider {
 		return this.constructor;
 	}
 	saveToFile() {
-		writeFileSync(this._fileLocation, JSON.stringify(this._metadata, null, 2), "utf-8");
+		(0, node_fs.writeFileSync)(this._fileLocation, JSON.stringify(this._metadata, null, 2), "utf-8");
 	}
 };
 //#endregion
@@ -295,7 +322,7 @@ var ObjectSystem = class {
 	async ensureBuffer(data) {
 		let BufferData;
 		if (data instanceof Buffer) BufferData = data;
-		else if (data instanceof ReadableStream) {
+		else if (data instanceof node_stream_web.ReadableStream) {
 			let buffers = [];
 			const reader = data.getReader();
 			let done = false;
@@ -305,7 +332,7 @@ var ObjectSystem = class {
 				done = doneReading;
 			}
 			BufferData = Buffer.concat(buffers.map((b) => Buffer.from(b)));
-		} else if (data instanceof Readable) {
+		} else if (data instanceof node_stream.Readable) {
 			let buffers = [];
 			for await (const chunk of data) buffers.push(chunk);
 			BufferData = Buffer.concat(buffers);
@@ -436,8 +463,8 @@ var DefaultObjectSystem = class extends ObjectSystem {
 		super(bucketName, metadataProvider, options);
 		this._folderLocation = options.folderLocation || "./default";
 		this._tmpLocation = options.tmpLocation || "./tmp";
-		if (!existsSync(this._folderLocation)) mkdirSync(this._folderLocation, { recursive: true });
-		if (!existsSync(this._tmpLocation)) mkdirSync(this._tmpLocation, { recursive: true });
+		if (!(0, node_fs.existsSync)(this._folderLocation)) (0, node_fs.mkdirSync)(this._folderLocation, { recursive: true });
+		if (!(0, node_fs.existsSync)(this._tmpLocation)) (0, node_fs.mkdirSync)(this._tmpLocation, { recursive: true });
 		this.putObject({
 			key: "data/TESTItem.txt",
 			data: "This is a test item."
@@ -474,7 +501,7 @@ var DefaultObjectSystem = class extends ObjectSystem {
 				key,
 				lastModified: /* @__PURE__ */ new Date(),
 				size: 0,
-				md5Checksum: crypto$1.createHash("md5").update(key).digest("hex")
+				md5Checksum: node_crypto.default.createHash("md5").update(key).digest("hex")
 			}, metadata.data));
 		}
 		return {
@@ -487,12 +514,12 @@ var DefaultObjectSystem = class extends ObjectSystem {
 		const { key, contentType, data, checksumAlgorithm, checksumType } = options;
 		if (data) {
 			const folderPath = `${this._folderLocation}/${key.split("/").slice(0, -1).join("/").replace(/^\//g, "").replace(/\/[^\/]+$/, "")}`;
-			if (!existsSync(folderPath)) mkdirSync(folderPath, { recursive: true });
+			if (!(0, node_fs.existsSync)(folderPath)) (0, node_fs.mkdirSync)(folderPath, { recursive: true });
 			const { md5Checksum, size } = await new Promise((resolve) => {
-				if (data instanceof ReadableStream || data instanceof Readable) {
-					const fileStream = createWriteStream(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`);
-					const nodeStream = data instanceof Readable ? data : Readable.from(data);
-					const hash = crypto$1.createHash("md5");
+				if (data instanceof node_stream_web.ReadableStream || data instanceof node_stream.Readable) {
+					const fileStream = (0, node_fs.createWriteStream)(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`);
+					const nodeStream = data instanceof node_stream.Readable ? data : node_stream.Readable.from(data);
+					const hash = node_crypto.default.createHash("md5");
 					nodeStream.on("data", (chunk) => {
 						hash.update(chunk);
 					});
@@ -500,13 +527,13 @@ var DefaultObjectSystem = class extends ObjectSystem {
 					fileStream.on("finish", () => {
 						resolve({
 							md5Checksum: hash.digest("hex"),
-							size: statSync(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`).size
+							size: (0, node_fs.statSync)(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`).size
 						});
 					});
 				} else {
-					writeFileSync(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`, data);
+					(0, node_fs.writeFileSync)(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`, data);
 					return resolve({
-						md5Checksum: crypto$1.createHash("md5").update(data).digest("hex"),
+						md5Checksum: node_crypto.default.createHash("md5").update(data).digest("hex"),
 						size: Buffer.isBuffer(data) ? data.length : Buffer.byteLength(data)
 					});
 				}
@@ -520,7 +547,7 @@ var DefaultObjectSystem = class extends ObjectSystem {
 			});
 			return md5Checksum;
 		} else {
-			mkdirSync(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`, { recursive: true });
+			(0, node_fs.mkdirSync)(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`, { recursive: true });
 			await this.metadataProvider.addFolderMetadata({
 				key: key.replace(/^\//g, "").replace(/\/$/g, "") + "/",
 				lastModified: /* @__PURE__ */ new Date(),
@@ -533,7 +560,7 @@ var DefaultObjectSystem = class extends ObjectSystem {
 		}
 	}
 	async headObject(key) {
-		if (!existsSync(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`)) return { data: Buffer.from("") };
+		if (!(0, node_fs.existsSync)(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`)) return { data: Buffer.from("") };
 		const metadata = await this.metadataProvider.getFileMetadata({ key });
 		return {
 			data: void 0,
@@ -543,26 +570,26 @@ var DefaultObjectSystem = class extends ObjectSystem {
 		};
 	}
 	async getObject(key, range) {
-		if (!existsSync(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`)) return { data: Buffer.from("") };
+		if (!(0, node_fs.existsSync)(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`)) return { data: Buffer.from("") };
 		const metadata = await this.metadataProvider.getFileMetadata({ key });
 		const filePath = `${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`;
 		if (range) {
 			const [startStr, endStr] = range.replace(/bytes=/, "").split("-");
-			const fileStream = createReadStream(filePath, {
+			const fileStream = (0, node_fs.createReadStream)(filePath, {
 				start: parseInt(startStr, 10),
 				end: endStr ? parseInt(endStr, 10) : metadata?.data?.size || 0
 			});
 			return {
-				data: Readable.toWeb(fileStream),
+				data: node_stream.Readable.toWeb(fileStream),
 				contentType: metadata?.data?.contentType,
 				eTag: metadata?.data?.md5Checksum,
 				lastModified: metadata?.data?.lastModified,
 				contentLength: metadata?.data?.size
 			};
 		}
-		const fileStream = createReadStream(filePath);
+		const fileStream = (0, node_fs.createReadStream)(filePath);
 		return {
-			data: Readable.toWeb(fileStream),
+			data: node_stream.Readable.toWeb(fileStream),
 			contentType: metadata?.data?.contentType,
 			eTag: metadata?.data?.md5Checksum,
 			lastModified: metadata?.data?.lastModified,
@@ -570,8 +597,8 @@ var DefaultObjectSystem = class extends ObjectSystem {
 		};
 	}
 	async handleUploadPart(uploadId, partNumber, data) {
-		writeFileSync(`${this._tmpLocation}/${uploadId}_${partNumber}`, data);
-		return crypto$1.createHash("md5").update(data).digest("hex");
+		(0, node_fs.writeFileSync)(`${this._tmpLocation}/${uploadId}_${partNumber}`, data);
+		return node_crypto.default.createHash("md5").update(data).digest("hex");
 	}
 	async getCompleteMultipartCombine(uploadId, parts) {
 		const sortedParts = [...parts].sort((a, b) => a.partNumber - b.partNumber);
@@ -579,23 +606,23 @@ var DefaultObjectSystem = class extends ObjectSystem {
 		async function* generateChunks() {
 			for (const part of sortedParts) {
 				const partPath = `${tmpLocation}/${uploadId}_${part.partNumber}`;
-				if (!existsSync(partPath)) throw new Error(`Part ${part.partNumber} not found for upload ID ${uploadId}`);
-				const readStream = createReadStream(partPath);
+				if (!(0, node_fs.existsSync)(partPath)) throw new Error(`Part ${part.partNumber} not found for upload ID ${uploadId}`);
+				const readStream = (0, node_fs.createReadStream)(partPath);
 				for await (const chunk of readStream) yield chunk;
-				rmSync(partPath);
+				(0, node_fs.rmSync)(partPath);
 			}
 		}
-		return Readable.from(generateChunks());
+		return node_stream.Readable.from(generateChunks());
 	}
 	abortMultipartUpload(options) {
 		return new Promise((resolve) => {
 			const { key, uploadId } = options;
 			const upload = this._multipartUploads.get(uploadId);
 			if (upload && upload.key === key) setTimeout(() => {
-				const parts = readdirSync(this._tmpLocation).filter((file) => file.startsWith(`${uploadId}_`));
+				const parts = (0, node_fs.readdirSync)(this._tmpLocation).filter((file) => file.startsWith(`${uploadId}_`));
 				for (const partFile of parts) {
 					const part = `${this._tmpLocation}/${partFile}`;
-					if (existsSync(part)) rmSync(part);
+					if ((0, node_fs.existsSync)(part)) (0, node_fs.rmSync)(part);
 				}
 				this._multipartUploads.delete(uploadId);
 				return resolve();
@@ -607,26 +634,26 @@ var DefaultObjectSystem = class extends ObjectSystem {
 		const { key } = options;
 		if (key.endsWith("/")) {
 			await this.metadataProvider.removeFolderMetadata({ key: key.replace(/^\//g, "") });
-			rmSync(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`, {
+			(0, node_fs.rmSync)(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`, {
 				recursive: true,
 				force: true
 			});
 		} else {
 			await this.metadataProvider.removeFileMetadata({ key: key.replace(/^\//g, "") });
-			rmSync(`${this._folderLocation}/${key.replace(/^\//g, "")}`, { force: true });
+			(0, node_fs.rmSync)(`${this._folderLocation}/${key.replace(/^\//g, "")}`, { force: true });
 		}
 	}
 	async deleteObjects(keys) {
 		let folderKeys = [];
 		let fileKeys = [];
 		for (const key of keys) if (key.endsWith("/")) {
-			rmSync(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`, {
+			(0, node_fs.rmSync)(`${this._folderLocation}/${key.replace(/^\//g, "").replace(/^\//g, "")}`, {
 				recursive: true,
 				force: true
 			});
 			folderKeys.push(key.replace(/^\//g, ""));
 		} else {
-			rmSync(`${this._folderLocation}/${key.replace(/^\//g, "")}`, { force: true });
+			(0, node_fs.rmSync)(`${this._folderLocation}/${key.replace(/^\//g, "")}`, { force: true });
 			fileKeys.push(key.replace(/^\//g, ""));
 		}
 		if (folderKeys.length > 0) await Promise.all(folderKeys.map((key) => key.replace(/^\//g, "")).map((key) => this.metadataProvider.removeFolderMetadata({ key })));
@@ -851,7 +878,7 @@ var DefaultBucketSystem = class extends BucketSystem {
 		super(secretKey, _region, _metadataProviderClass, _metadataProviderOptions, _objectSystemClass, _objectSystemOptions);
 		this._fileLocation = _fileLocation;
 		this.owner = owner;
-		if (!existsSync(this._fileLocation)) writeFileSync(this._fileLocation, JSON.stringify({ buckets: [] }, null, 2));
+		if (!(0, node_fs.existsSync)(this._fileLocation)) (0, node_fs.writeFileSync)(this._fileLocation, JSON.stringify({ buckets: [] }, null, 2));
 	}
 	async getOwner(request) {
 		return this.owner;
@@ -877,10 +904,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/agpl-3.0.txt>
 */
 var S3Verifier = class {
 	static sha256(data) {
-		return createHash("sha256").update(data).digest("hex");
+		return (0, node_crypto.createHash)("sha256").update(data).digest("hex");
 	}
 	static getSignatureKey(key, date, region, service) {
-		return createHmac("sha256", createHmac("sha256", createHmac("sha256", createHmac("sha256", `AWS4${key}`).update(date).digest()).update(region).digest()).update(service).digest()).update("aws4_request").digest();
+		return (0, node_crypto.createHmac)("sha256", (0, node_crypto.createHmac)("sha256", (0, node_crypto.createHmac)("sha256", (0, node_crypto.createHmac)("sha256", `AWS4${key}`).update(date).digest()).update(region).digest()).update(service).digest()).update("aws4_request").digest();
 	}
 	static parseAmzDate(s) {
 		const m = s.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
@@ -936,9 +963,9 @@ var S3Verifier = class {
 			`${dateStamp}/${region}/${service}/aws4_request`,
 			this.sha256(canonicalRequest)
 		].join("\n");
-		const calculatedSig = createHmac("sha256", this.getSignatureKey(secretKey, dateStamp, region, service)).update(stringToSign).digest("hex");
+		const calculatedSig = (0, node_crypto.createHmac)("sha256", this.getSignatureKey(secretKey, dateStamp, region, service)).update(stringToSign).digest("hex");
 		if (calculatedSig.length !== providedSig.length) return false;
-		return timingSafeEqual(Buffer.from(calculatedSig), Buffer.from(providedSig));
+		return (0, node_crypto.timingSafeEqual)(Buffer.from(calculatedSig), Buffer.from(providedSig));
 	}
 	static verifyPresigned(method, url, query, secretKey) {
 		const getQueryParam = (key) => {
@@ -995,9 +1022,9 @@ var S3Verifier = class {
 			`${dateStamp}/${region}/${service}/aws4_request`,
 			this.sha256(canonicalRequest)
 		].join("\n");
-		const calculatedSig = createHmac("sha256", this.getSignatureKey(secretKey, dateStamp, region, service)).update(stringToSign).digest("hex");
+		const calculatedSig = (0, node_crypto.createHmac)("sha256", this.getSignatureKey(secretKey, dateStamp, region, service)).update(stringToSign).digest("hex");
 		if (calculatedSig.length !== providedSig.length) return false;
-		return timingSafeEqual(Buffer.from(calculatedSig), Buffer.from(providedSig));
+		return (0, node_crypto.timingSafeEqual)(Buffer.from(calculatedSig), Buffer.from(providedSig));
 	}
 	static verifyTime(headers, query) {
 		headers = new Headers(headers);
@@ -1030,7 +1057,7 @@ function ElysiaS3Server$1({ elysiaOptions = {}, baseHost = [], iframeAllow = [],
 	id: "ASDSAFKNDKFJNSDV",
 	displayName: "xTSK"
 }, region = "us-east-1", bucketSystem = new DefaultBucketSystem(process.env.S3_SECRET_KEY || "A_KEY", region, metadataProviderClass, metadataProviderOptions, objectSystemClass, objectSystemOptions, "./buckets.json", owner) }) {
-	return new Elysia({
+	return new elysia.Elysia({
 		...elysiaOptions,
 		name: "S3Server"
 	}).all("/*", async ({ request }) => {
@@ -1221,7 +1248,7 @@ var S3Server = class {
 		if (objectMetadata.eTag) responseInit.headers["etag"] = `"${objectMetadata.eTag}"`;
 		if (range) responseInit.headers["accept-ranges"] = "bytes";
 		if (objectMetadata.contentType) responseInit.headers["content-type"] = objectMetadata.contentType || "application/octet-stream";
-		if (objectMetadata.data) return this.getResponse(responseInit, Readable.toWeb(Readable.from(objectMetadata.data)));
+		if (objectMetadata.data) return this.getResponse(responseInit, node_stream.Readable.toWeb(node_stream.Readable.from(objectMetadata.data)));
 		else return this.getResponse(responseInit, void 0);
 	}
 	async handleHead(request, responseInit) {
@@ -1453,6 +1480,7 @@ var S3Server = class {
 };
 const ElysiaS3Server = ElysiaS3Server$1;
 //#endregion
-export { ElysiaS3Server, S3Server as default };
+exports.ElysiaS3Server = ElysiaS3Server;
+exports.default = S3Server;
 
-//# sourceMappingURL=index.mjs.map
+//# sourceMappingURL=index.cjs.map

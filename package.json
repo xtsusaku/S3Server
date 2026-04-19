@@ -2,9 +2,16 @@
   "name": "@xtsusaku/s3server",
   "version": "1.0.0",
   "author": "xTsuSaKu <me@xtsusaku.net> (https://xtsusaku.net)",
-  "module": "index.ts",
-  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "license": "",
+  "scripts": {
+    "build": "./node_modules/.bin/tsdown"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/xtsusaku/S3Server.git"
